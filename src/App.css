@@ -7,5 +7,5 @@ body {
 .App {
   height: 100vh;
   width: 100vw;
-  background-color: #0c181f;
+  background: linear-gradient(0deg, rgba(12,24,31,1) 70%, rgba(0,0,0,1) 80%);
 }

@@ -1,8 +1,10 @@
 import './App.css'
-import * as Three from 'three'
-import { Canvas, useFrame, useLoader } from 'react-three-fiber'
 import Orb from './assets/customOrb.png'
 import { Suspense, useCallback, useMemo, useRef } from 'react'
+import * as Three from 'three'
+import { Canvas, extend, useFrame, useLoader, useThree } from 'react-three-fiber'
+import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls'
+extend({ OrbitControls })
 
 // ----------------------------------------------------------------------------------------------------
 
@@ -16,7 +18,26 @@ function AnimationCanvas() {
       <Suspense fallback={null}>
         <Points/>
       </Suspense>
+      <CameraControl/>
     </Canvas>
+  )
+}
+
+// Camera control
+// Hold down left click to rotate
+// Hold down right click to move position
+// Use scroll wheel to change zoom
+function CameraControl() {
+  const { camera, gl: { domElement } } = useThree()
+  const controls = useRef()
+
+  useFrame(() => controls.current.update())
+
+  return(
+    <orbitControls
+    ref={controls}
+    args={[camera, domElement]}
+    />
   )
 }
 
@@ -42,7 +63,7 @@ function Points() {
   // http://grapher.mathpix.com/
   let frequency = 0.002
   let theta = 0
-  let amplitude = 1
+  let amplitude = 2
   const graph = useCallback((x, z) => {
     return Math.sin(frequency * (x**2 + z**2 + theta)) * amplitude
   }, [theta, frequency, amplitude])
@@ -72,7 +93,10 @@ function Points() {
   // useFrame hook
   // Generates the animation
   useFrame(() => {
-    theta += 15
+    // Animates how the waves behave
+    // frequency +=
+    theta -= 20
+    // amplitude +=
 
     const positions = currentPositions.current.array
 
