@@ -6,8 +6,7 @@ import { Canvas, extend, useFrame, useLoader, useThree } from 'react-three-fiber
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls'
 extend({ OrbitControls })
 
-// ----------------------------------------------------------------------------------------------------
-
+// ------------------------------ CAMERA ------------------------------
 // Camera position
 function AnimationCanvas() {
   return(
@@ -20,8 +19,7 @@ function AnimationCanvas() {
       </Suspense>
       <CameraControl/>
     </Canvas>
-  )
-}
+  )}
 
 // Camera control
 // Hold down left click to rotate
@@ -30,28 +28,24 @@ function AnimationCanvas() {
 function CameraControl() {
   const { camera, gl: { domElement } } = useThree()
   const controls = useRef()
-
   useFrame(() => controls.current.update())
-
   return(
     <orbitControls
     ref={controls}
     args={[camera, domElement]}
     />
-  )
-}
+  )}
 
-// ----------------------------------------------------------------------------------------------------
+// ------------------------------ ANIMATION ------------------------------
 
-// Animation
+// Contains orb placements and animation
 function Points() {
   // Loads orb
   const orb = useLoader(Three.TextureLoader, Orb)
-  // Number of points across an axis
+  // Number of points(orbs) across the axis
   const count = 500
-  // Distance between each point
+  // Distance between each point(orb)
   const distance = 2.5
-
   // Gets current array of positions
   const currentPositions = useRef()
 
@@ -60,7 +54,7 @@ function Points() {
   // Frequency changes how many times waves occur
   // Theta changes how far wave travels before repeating
   // Amplitude changes height of each wave
-  // http://grapher.mathpix.com/
+  // Function generator: http://grapher.mathpix.com/
   let frequency = 0.002
   let theta = 0
   let amplitude = 2
@@ -72,7 +66,6 @@ function Points() {
   // Example: [x1, y1, z1, x2, y2, z2, x3 and so on...]
   let positions = useMemo(() => {
     let positions = []
-
     // Iterate over an index on x and z axis
     // From left to right on x
     // From back to front on z
@@ -86,7 +79,6 @@ function Points() {
         positions.push(x, y, z)
       }
     }
-
     return new Float32Array(positions)
   }, [count, distance, graph])
 
@@ -94,12 +86,9 @@ function Points() {
   // Generates the animation
   useFrame(() => {
     // Animates how the waves behave
-    // frequency +=
+    // Can also use 'frequency +=' and 'amplitude +='
     theta -= 20
-    // amplitude +=
-
     const positions = currentPositions.current.array
-
     let i = 0
     for(let xi = 0; xi < count; xi++) {
       for(let zi = 0; zi < count; zi++) {
@@ -107,9 +96,7 @@ function Points() {
         let z = distance * (zi - count / 2)
         positions[i + 1] = graph(x, z)
         i += 3
-      }
-    }
-
+      }}
     currentPositions.current.needsUpdate = true
   })
 
@@ -124,7 +111,6 @@ function Points() {
         itemSize={3}
         />
       </bufferGeometry>
-
       <pointsMaterial
       attach="material"
       map={orb}
@@ -138,7 +124,7 @@ function Points() {
   )
 }
 
-// ----------------------------------------------------------------------------------------------------
+// ------------------------------ LOAD CANVAS ------------------------------
 
 function App() {
   return (
