@@ -1,8 +1,8 @@
 import './App.css'
 import * as Three from 'three'
-import { Canvas, useLoader } from 'react-three-fiber'
+import { Canvas, useFrame, useLoader } from 'react-three-fiber'
 import Orb from './assets/customOrb.png'
-import { Suspense, useCallback, useMemo } from 'react'
+import { Suspense, useCallback, useMemo, useRef } from 'react'
 
 // ----------------------------------------------------------------------------------------------------
 
@@ -11,7 +11,7 @@ function AnimationCanvas() {
   return(
     <Canvas
     colorManagement={false}
-    camera={{position:[100, 10, 0], fov: 90}}
+    camera={{position:[100, 15, 0], fov: 30}}
     >
       <Suspense fallback={null}>
         <Points/>
@@ -22,14 +22,17 @@ function AnimationCanvas() {
 
 // ----------------------------------------------------------------------------------------------------
 
-// Contains animation
+// Animation
 function Points() {
   // Loads orb
   const orb = useLoader(Three.TextureLoader, Orb)
   // Number of points across an axis
-  const count = 100
+  const count = 500
   // Distance between each point
-  const distance = 4
+  const distance = 2.5
+
+  // Gets current array of positions
+  const currentPositions = useRef()
 
   // SIN uses a wave pattern
   // y = sin ( frequency * ( x^2 + z^2 + theta ) ) * amplitude
@@ -39,7 +42,7 @@ function Points() {
   // http://grapher.mathpix.com/
   let frequency = 0.002
   let theta = 0
-  let amplitude = 3
+  let amplitude = 1
   const graph = useCallback((x, z) => {
     return Math.sin(frequency * (x**2 + z**2 + theta)) * amplitude
   }, [theta, frequency, amplitude])
@@ -66,10 +69,31 @@ function Points() {
     return new Float32Array(positions)
   }, [count, distance, graph])
 
+  // useFrame hook
+  // Generates the animation
+  useFrame(() => {
+    theta += 15
+
+    const positions = currentPositions.current.array
+
+    let i = 0
+    for(let xi = 0; xi < count; xi++) {
+      for(let zi = 0; zi < count; zi++) {
+        let x = distance * (xi - count / 2)
+        let z = distance * (zi - count / 2)
+        positions[i + 1] = graph(x, z)
+        i += 3
+      }
+    }
+
+    currentPositions.current.needsUpdate = true
+  })
+
   return(
     <points>
       <bufferGeometry attach="geometry">
         <bufferAttribute
+        ref={currentPositions}
         attachObject={['attributes', 'position']}
         array={positions}
         count={positions.length / 3}
